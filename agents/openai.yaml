@@ -1,0 +1,7 @@
+interface:
+  display_name: "Project Onboarding Architect"
+  short_description: "Audit a repo and draft a concise, tool-agnostic AGENTS.md"
+  default_prompt: "Use $project-onboarding-architect to audit this repository and draft or update a concise, repository-specific AGENTS.md."
+
+policy:
+  allow_implicit_invocation: false
