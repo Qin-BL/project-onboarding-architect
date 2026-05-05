@@ -84,6 +84,8 @@ Include only rule modules that fit the detected repository type, maturity, and u
 - Preserve the existing architecture and style unless the user wants a deliberate shift.
 - Ask before enforcing strong compatibility or architecture rules.
 - Ask before adding heavy process to a repository that currently succeeds with a lighter workflow.
+- When the repository has tests or the user wants stronger validation, include a testing rule that requires complete positive and negative coverage for each added or changed test module.
+- When the repository's tests are present but incomplete, include a rule that future agents must extend the test module until the changed code paths and meaningful branches are covered end to end.
 
 Read [references/rule-modules.md](references/rule-modules.md) when choosing which sections to include or exclude from `AGENTS.md`.
 
@@ -96,9 +98,10 @@ Before generating the final `AGENTS.md`, provide a concise confirmation summary 
 3. detected tests, linting, and CI/CD
 4. whether the repository has public or external contracts
 5. detected architecture style or notable lack of structure
-6. rule modules proposed for inclusion
-7. rule modules proposed for exclusion
-8. decisions that still need confirmation
+6. detected test gaps, including whether current tests miss positive cases, negative cases, or meaningful branches
+7. rule modules proposed for inclusion
+8. rule modules proposed for exclusion
+9. decisions that still need confirmation
 
 Do not generate the final `AGENTS.md` until material policy questions are resolved.
 
@@ -131,6 +134,13 @@ Default structure:
 5. docs, comments, and response expectations
 6. optional project-specific sections that truly apply
 
+If the repository uses tests, make the testing expectations concrete. Prefer rules such as:
+
+- add both positive and negative tests when creating or expanding a test module
+- treat incomplete test modules as unfinished work and extend them before closing the task
+- cover changed code paths and meaningful branches, not only the happy path
+- do not claim completion while obvious uncovered logic remains
+
 ## Output Contract
 
 Produce work in this order unless the user asks for something else:
@@ -138,8 +148,9 @@ Produce work in this order unless the user asks for something else:
 1. discovery summary
 2. open questions or assumptions
 3. proposed rule modules to include and exclude
-4. `AGENTS.md` draft or revision plan
-5. bridge-file recommendation only if relevant
+4. testing-policy recommendation, including whether positive cases, negative cases, and missing coverage must be added
+5. `AGENTS.md` draft or revision plan
+6. bridge-file recommendation only if relevant
 
 If asked to edit files directly and material policy decisions are still open, stop at a draft plus confirmation request instead of overwriting governance files.
 

@@ -35,7 +35,10 @@ Common expectations:
 
 - align with the existing test framework and fixtures
 - add or update tests for behavior changes
+- add complete positive and negative cases when creating or expanding a test module
 - add regression coverage for bug fixes when practical
+- treat a partially covered test module as incomplete work and extend it until changed code paths and meaningful branches are covered
+- do not stop at the happy path when validation, error handling, permissions, edge cases, or fallback logic materially affect behavior
 - do not weaken or skip tests just to pass
 
 If the repository has no testing framework, describe the current state and ask before imposing a heavy new policy.
