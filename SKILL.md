@@ -86,6 +86,7 @@ Include only rule modules that fit the detected repository type, maturity, and u
 - Ask before adding heavy process to a repository that currently succeeds with a lighter workflow.
 - When the repository has tests or the user wants stronger validation, include a testing rule that requires complete positive and negative coverage for each added or changed test module.
 - When the repository's tests are present but incomplete, include a rule that future agents must extend the test module until the changed code paths and meaningful branches are covered end to end.
+- When the repository uses message queues, pub/sub, or background workers, include concrete rules for idempotent job handling, safe retries, and re-enqueue behavior for failures or missing responses when the delivery model requires it.
 
 Read [references/rule-modules.md](references/rule-modules.md) when choosing which sections to include or exclude from `AGENTS.md`.
 
@@ -98,10 +99,11 @@ Before generating the final `AGENTS.md`, provide a concise confirmation summary 
 3. detected tests, linting, and CI/CD
 4. whether the repository has public or external contracts
 5. detected architecture style or notable lack of structure
-6. detected test gaps, including whether current tests miss positive cases, negative cases, or meaningful branches
-7. rule modules proposed for inclusion
-8. rule modules proposed for exclusion
-9. decisions that still need confirmation
+6. detected async job or message-queue patterns, including retry, timeout, acknowledgement, and re-enqueue risks when relevant
+7. detected test gaps, including whether current tests miss positive cases, negative cases, or meaningful branches
+8. rule modules proposed for inclusion
+9. rule modules proposed for exclusion
+10. decisions that still need confirmation
 
 Do not generate the final `AGENTS.md` until material policy questions are resolved.
 
@@ -112,6 +114,7 @@ Material policy questions often include:
 - whether to create or update bridge files
 - whether to replace or revise an existing `AGENTS.md`
 - whether HA, concurrency, migration, or operational rules should be strong or optional
+- whether queue-consumer retry, re-enqueue, timeout, and idempotency rules should be strong or optional
 
 ## Drafting `AGENTS.md`
 
@@ -141,6 +144,13 @@ If the repository uses tests, make the testing expectations concrete. Prefer rul
 - cover changed code paths and meaningful branches, not only the happy path
 - do not claim completion while obvious uncovered logic remains
 
+If the repository uses message queues, pub/sub, or background workers, make the operational expectations concrete. Prefer rules such as:
+
+- make queue-driven tasks safe to run more than once by requiring idempotent handlers
+- define what happens on task failure, timeout, or no response before acknowledging the work as complete
+- re-enqueue or retry transient failures safely when the queue semantics and product requirements call for it
+- avoid duplicate side effects on redelivery by using deduplication keys, idempotency keys, or state checks when appropriate
+
 ## Output Contract
 
 Produce work in this order unless the user asks for something else:
@@ -149,8 +159,9 @@ Produce work in this order unless the user asks for something else:
 2. open questions or assumptions
 3. proposed rule modules to include and exclude
 4. testing-policy recommendation, including whether positive cases, negative cases, and missing coverage must be added
-5. `AGENTS.md` draft or revision plan
-6. bridge-file recommendation only if relevant
+5. async-processing recommendation, including whether retry, re-enqueue, timeout, and idempotency rules must be added
+6. `AGENTS.md` draft or revision plan
+7. bridge-file recommendation only if relevant
 
 If asked to edit files directly and material policy decisions are still open, stop at a draft plus confirmation request instead of overwriting governance files.
 

@@ -61,6 +61,21 @@ Include when the repository owns schema changes, data migrations, state transiti
 
 Focus on rollout safety, reversibility, data integrity, and operational caution rather than generic database advice.
 
+### Message Queue And Async Job Safety
+
+Include when the repository uses message queues, pub/sub, background workers, scheduled async jobs, or other delivery models where work may be retried or redelivered.
+
+Common expectations:
+
+- make message and job handlers idempotent so retries or redelivery do not create duplicate side effects
+- define acknowledgement, timeout, retry, and failure behavior explicitly instead of assuming the default broker behavior is safe
+- re-enqueue or retry transient failures and no-response cases when the delivery semantics and business workflow require another attempt
+- separate transient failures from permanent failures so poison messages are not retried forever
+- use deduplication keys, idempotency keys, optimistic state checks, or equivalent guards when the side effects are externally visible or expensive
+- describe dead-letter, poison-message, or operator-escalation handling when it materially affects safety
+
+Do not add queue-specific rules to repositories that do not actually use async job delivery or message brokers.
+
 ### Operational Safety And Observability
 
 Include when the repository runs services, jobs, or infrastructure where auth, authorization, logging, retry behavior, metrics, alerting, rollback, or failure handling matter.
@@ -88,6 +103,7 @@ Use these examples as selection hints, not as mandatory templates:
 - CLI: command contract stability, config files, output compatibility, release discipline
 - SDK or library: public API compatibility, versioning, examples, release discipline, test matrix
 - data job: idempotency, replay, checkpoints, data quality, recovery, resource control
+- queue-driven worker or service: idempotency, retry policy, re-enqueue behavior, timeout handling, poison-message recovery
 - simple internal tool: keep rules light and avoid over-architecture
 - high-traffic production service: strengthen compatibility, observability, rollback, and concurrency guidance
 

@@ -40,6 +40,7 @@ Inspect these sources when present:
 - environment and secrets templates
 - container files
 - infrastructure files
+- queue, worker, scheduler, or pub/sub configuration
 - architecture docs
 - API docs
 - migration setup
@@ -55,6 +56,7 @@ Useful signals include:
 - `.github/workflows/*`, Azure Pipelines, GitLab CI, Jenkins, CircleCI
 - `README*`, `docs/*`, `mkdocs.yml`, `docusaurus`, `storybook`
 - test directories, fixtures, and coverage setup
+- worker entrypoints, consumer handlers, broker clients, and retry or dead-letter configuration
 - migration tools and schema folders
 - public API definitions and SDK packaging clues
 - CLI entrypoints and release scripts
@@ -92,6 +94,7 @@ Ask only when the repository cannot answer the issue and the answer materially a
 4. What is the target scale?
 5. Are there required language, framework, database, cloud, or architecture constraints?
 6. Are there special constraints such as HA, low latency, compliance, privacy, cost, team size, or delivery deadline?
-7. If `AGENTS.md` already exists, should it be modified, replaced, or rewritten as a new draft?
+7. Does the system use message queues, background workers, or pub/sub flows whose retry, timeout, re-enqueue, or idempotency policy is not obvious from the repository?
+8. If `AGENTS.md` already exists, should it be modified, replaced, or rewritten as a new draft?
 
 Do not ask questions the user already answered or that can be inferred safely from the repository.
