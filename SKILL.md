@@ -87,6 +87,8 @@ Include only rule modules that fit the detected repository type, maturity, and u
 - When the repository has tests or the user wants stronger validation, include a testing rule that requires complete positive and negative coverage for each added or changed test module.
 - When the repository's tests are present but incomplete, include a rule that future agents must extend the test module until the changed code paths and meaningful branches are covered end to end.
 - When the repository uses message queues, pub/sub, or background workers, include concrete rules for idempotent job handling, safe retries, and re-enqueue behavior for failures or missing responses when the delivery model requires it.
+- When the repository has CI/CD, include a rule that future agents must validate against the closest local equivalent of the real CI/CD stages when feasible instead of stopping at narrow unit tests.
+- When the repository uses schema migrations, include a rule that future agents must validate migration graph or plan health after merge-sensitive changes so deploy-only failures are caught before handoff.
 
 Read [references/rule-modules.md](references/rule-modules.md) when choosing which sections to include or exclude from `AGENTS.md`.
 
@@ -150,6 +152,19 @@ If the repository uses message queues, pub/sub, or background workers, make the 
 - define what happens on task failure, timeout, or no response before acknowledging the work as complete
 - re-enqueue or retry transient failures safely when the queue semantics and product requirements call for it
 - avoid duplicate side effects on redelivery by using deduplication keys, idempotency keys, or state checks when appropriate
+
+If the repository has CI/CD or deployment automation, prefer rules such as:
+
+- run the closest local equivalent of the real CI commands when feasible instead of assuming focused tests are sufficient
+- name the exact lint, format, typecheck, packaging, migration, or deploy-preflight commands that mirror CI/CD gates
+- treat CI/CD as the final source of truth for integration safety and deployment safety when it exists
+- if a fix is applied on an integration branch because CI/CD failed, check whether the same fix must be backported to source branches or open PR branches
+
+If the repository uses schema migrations, prefer rules such as:
+
+- check migration graph or migration plan health after rebases, branch merges, or concurrent schema work
+- catch deployment-only failures such as multiple migration leaf nodes before declaring the work complete
+- prefer an explicit merge migration or tool-specific equivalent when already-shared branches create parallel migration leaves
 
 ## Output Contract
 

@@ -49,6 +49,13 @@ Include when the repository has CI workflows, deployment gates, or standard vali
 
 Usually state that local validation is expected when feasible and that CI/CD is the final source of truth when it exists.
 
+Common expectations:
+
+- run the closest local equivalent of the real CI stages when feasible instead of stopping at narrow unit tests
+- name the actual lint, format, typecheck, packaging, migration, or deploy-preflight commands that mirror CI/CD gates
+- explain that passing focused tests is not enough when CI/CD also enforces formatting, hooks, schema checks, or artifact/build validation
+- if an integration-branch fix is required to satisfy CI/CD, check whether source branches or open PR branches need the same fix backported
+
 ### API, SDK, CLI, Or Compatibility Policy
 
 Include only when the repository exposes public APIs, SDKs, CLI contracts, shared UI components, integration contracts, or other external consumer surfaces.
@@ -60,6 +67,12 @@ Backward compatibility is often the production default, but it should not be enf
 Include when the repository owns schema changes, data migrations, state transitions, or replay-sensitive jobs.
 
 Focus on rollout safety, reversibility, data integrity, and operational caution rather than generic database advice.
+
+Common expectations:
+
+- validate migration graph or migration plan health after rebases, branch merges, or concurrent schema work
+- catch deploy-only failures such as conflicting migration leaves before declaring the work complete
+- prefer explicit merge migrations or the migration tool's equivalent when already-shared branches create parallel leaves
 
 ### Message Queue And Async Job Safety
 
