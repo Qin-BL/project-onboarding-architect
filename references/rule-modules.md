@@ -73,6 +73,9 @@ Common expectations:
 - validate migration graph or migration plan health after rebases, branch merges, or concurrent schema work
 - catch deploy-only failures such as conflicting migration leaves before declaring the work complete
 - prefer explicit merge migrations or the migration tool's equivalent when already-shared branches create parallel leaves
+- allow rebasing or regenerating a linear migration chain only while the conflict is still private and undeployed; once shared branches or environments have applied it, require an explicit transition plan
+- when CI/CD auto-deploys an integration branch, validate migration-history changes against both a fresh database and one that already applied the old path
+- include rollout compatibility steps such as migration-record cleanup, fake transitions, or equivalent environment repair logic when replacing a migration path that test or staging has already executed
 
 ### Message Queue And Async Job Safety
 
@@ -86,14 +89,40 @@ Common expectations:
 - separate transient failures from permanent failures so poison messages are not retried forever
 - use deduplication keys, idempotency keys, optimistic state checks, or equivalent guards when the side effects are externally visible or expensive
 - describe dead-letter, poison-message, or operator-escalation handling when it materially affects safety
+- treat silent skips, empty-result branches, and early returns as risky when they can accidentally mark incomplete work as finished and suppress later retries
 
 Do not add queue-specific rules to repositories that do not actually use async job delivery or message brokers.
+
+### External Sync And Derived Data Safety
+
+Include when the repository syncs from external systems, mirrors third-party records, or creates downstream state from sync results.
+
+Common expectations:
+
+- validate the full sync chain instead of only the primary upsert, including foreign keys, attachments, events, derived objects, and downstream jobs
+- prefer idempotent, eligibility-based initialization when related upstream data may arrive after the first create event
+- make sidecar refresh jobs, periodic tasks, and backfills run the same post-processing as the full sync path when they touch the same entities
+- question fragile gating based on filename strings, display labels, or other incidental values when stronger business signals already exist
+
+Do not include this module for repositories that do not own external sync logic or downstream derived state.
 
 ### Operational Safety And Observability
 
 Include when the repository runs services, jobs, or infrastructure where auth, authorization, logging, retry behavior, metrics, alerting, rollback, or failure handling matter.
 
 Do not add service-ops policy to a simple local-only tool unless it truly applies.
+
+### Auth And Operator Surface Safety
+
+Include when the repository owns login flows, session tokens, operator dashboards, maintenance tools, or other privileged internal surfaces.
+
+Common expectations:
+
+- treat deprecated but still reachable endpoints as active attack surface until they are removed or protected
+- require clear refresh-token rotation and server-side revocation guidance when long-lived session tokens are used
+- keep internal dashboards, queue monitors, worker control planes, and similar operational surfaces off the public internet by default; prefer private network access plus front-door authentication
+
+Do not include this module for repositories that have no meaningful auth, session, or operator surfaces.
 
 ### Documentation And Comment Policy
 

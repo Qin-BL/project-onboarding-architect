@@ -89,6 +89,9 @@ Include only rule modules that fit the detected repository type, maturity, and u
 - When the repository uses message queues, pub/sub, or background workers, include concrete rules for idempotent job handling, safe retries, and re-enqueue behavior for failures or missing responses when the delivery model requires it.
 - When the repository has CI/CD, include a rule that future agents must validate against the closest local equivalent of the real CI/CD stages when feasible instead of stopping at narrow unit tests.
 - When the repository uses schema migrations, include a rule that future agents must validate migration graph or plan health after merge-sensitive changes so deploy-only failures are caught before handoff.
+- When the repository syncs data from external systems or derives downstream state from sync results, include rules that future agents must validate the full sync chain: FK rebinding, event emission, attachment or relation binding, derived records, and async follow-up work, not only the primary upsert.
+- When the repository relies on created-event hooks or asynchronous initialization, include rules that future agents should prefer idempotent, eligibility-based initialization over one-time creation timing when upstream data may arrive late.
+- When the repository has meaningful auth, session, admin, or operator surfaces, include rules that future agents must review reachable deprecated endpoints, token revocation behavior, and whether internal operational tools are exposed publicly.
 
 Read [references/rule-modules.md](references/rule-modules.md) when choosing which sections to include or exclude from `AGENTS.md`.
 
@@ -152,6 +155,7 @@ If the repository uses message queues, pub/sub, or background workers, make the 
 - define what happens on task failure, timeout, or no response before acknowledging the work as complete
 - re-enqueue or retry transient failures safely when the queue semantics and product requirements call for it
 - avoid duplicate side effects on redelivery by using deduplication keys, idempotency keys, or state checks when appropriate
+- treat silent skips, empty-result branches, and early returns as high-risk paths when they can accidentally convert retryable work into a completed terminal state
 
 If the repository has CI/CD or deployment automation, prefer rules such as:
 
@@ -165,6 +169,22 @@ If the repository uses schema migrations, prefer rules such as:
 - check migration graph or migration plan health after rebases, branch merges, or concurrent schema work
 - catch deployment-only failures such as multiple migration leaf nodes before declaring the work complete
 - prefer an explicit merge migration or tool-specific equivalent when already-shared branches create parallel migration leaves
+- distinguish between private branch conflicts and already-shared or already-deployed migration paths; a linear rewrite is safer before sharing, while deployed paths need an explicit environment transition plan
+- when an integration branch auto-deploys to test or staging, validate migration-history changes against both fresh databases and databases that already applied the old path
+- when replacing a deployed migration path, include rollout compatibility steps such as migration-record cleanup, fake migration transitions, or equivalent deploy-time guardrails
+
+If the repository syncs external data or fans sync results into downstream workflows, prefer rules such as:
+
+- validate the full sync chain instead of only the main table write: foreign keys, attachments, events, derived objects, and downstream async jobs
+- prefer idempotent, eligibility-based initialization when related upstream data can arrive after the first create event
+- make sidecar refresh jobs, backfills, and incremental tasks perform the same post-processing as the full sync path when they touch the same entities
+- avoid fragile gating on filename strings or similar incidental values when stronger business identifiers or actual processing capability exist
+
+If the repository has auth-sensitive or operator-only surfaces, prefer rules such as:
+
+- treat deprecated but reachable endpoints as live attack surface until they are removed or protected
+- require refresh-token rotation and server-side revocation guidance when session-bearing tokens are used
+- keep internal dashboards, worker control planes, and maintenance tools off the public internet by default; prefer private network access plus front-door authentication
 
 ## Output Contract
 
