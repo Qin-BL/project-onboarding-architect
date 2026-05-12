@@ -89,6 +89,7 @@ Include only rule modules that fit the detected repository type, maturity, and u
 - When the repository uses message queues, pub/sub, or background workers, include concrete rules for idempotent job handling, safe retries, and re-enqueue behavior for failures or missing responses when the delivery model requires it.
 - When the repository has CI/CD, include a rule that future agents must validate against the closest local equivalent of the real CI/CD stages when feasible instead of stopping at narrow unit tests.
 - When the repository uses schema migrations, include a rule that future agents must validate migration graph or plan health after merge-sensitive changes so deploy-only failures are caught before handoff.
+- When the repository owns persistent relational schema but still relies on ORM `create_all`, bootstrap SQL, or similar startup-time schema creation, include a rule that future agents must move schema changes onto a real migration tool and stop treating application startup as the schema manager.
 - When the repository syncs data from external systems or derives downstream state from sync results, include rules that future agents must validate the full sync chain: FK rebinding, event emission, attachment or relation binding, derived records, and async follow-up work, not only the primary upsert.
 - When the repository relies on created-event hooks or asynchronous initialization, include rules that future agents should prefer idempotent, eligibility-based initialization over one-time creation timing when upstream data may arrive late.
 - When the repository has meaningful auth, session, admin, or operator surfaces, include rules that future agents must review reachable deprecated endpoints, token revocation behavior, and whether internal operational tools are exposed publicly.
@@ -172,6 +173,12 @@ If the repository uses schema migrations, prefer rules such as:
 - distinguish between private branch conflicts and already-shared or already-deployed migration paths; a linear rewrite is safer before sharing, while deployed paths need an explicit environment transition plan
 - when an integration branch auto-deploys to test or staging, validate migration-history changes against both fresh databases and databases that already applied the old path
 - when replacing a deployed migration path, include rollout compatibility steps such as migration-record cleanup, fake migration transitions, or equivalent deploy-time guardrails
+
+If the repository owns persistent relational schema but does not yet use a migration tool, prefer rules such as:
+
+- introduce a real migration tool before continuing normal schema growth
+- stop relying on ORM startup hooks or init SQL as the long-term schema source of truth
+- make future schema changes land as reviewed migration revisions plus deploy-time migration execution
 
 If the repository syncs external data or fans sync results into downstream workflows, prefer rules such as:
 
