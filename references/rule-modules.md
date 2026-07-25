@@ -78,6 +78,7 @@ Common expectations:
 - include rollout compatibility steps such as migration-record cleanup, fake transitions, or equivalent environment repair logic when replacing a migration path that test or staging has already executed
 - when a repository still relies on ORM `create_all`, container init SQL, or similar startup schema bootstrap, treat that as transitional and move the repository onto a reviewed migration tool before ongoing schema growth continues
 - once a migration tool exists, treat the migration history as the schema source of truth and stop adding long-term schema changes only in app startup code
+- when the repository or user requires async database access, require async driver URLs, async engines or sessions, and migration setup that respects the async policy; forbid introducing synchronous database clients or blocking DB helper layers without explicit approval
 
 ### Message Queue And Async Job Safety
 

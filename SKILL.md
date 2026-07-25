@@ -32,6 +32,9 @@ Prefer short, high-signal rules over generic best-practice dumps. Mark unknown f
 - Preserve working project conventions unless the user wants deliberate change.
 - Explain "works today but not ideal" findings before recommending tighter governance.
 - Do not silently upgrade architecture, compatibility, HA, migration, or policy strictness.
+- If the user asks for heavy governance on a simple prototype, recommend lighter rules and explain why.
+- If the user asks to enforce rules that contradict detected repository facts, surface the conflict before complying.
+- When updating an existing `AGENTS.md`, remove only rules that your analysis shows are contradicted by detected repository facts. Do not remove pre-existing rules unless the user asks or the rule is factually wrong.
 - Write `AGENTS.md` in plain Markdown and keep the core rules tool-agnostic.
 
 Use language such as:
@@ -90,6 +93,7 @@ Include only rule modules that fit the detected repository type, maturity, and u
 - When the repository has CI/CD, include a rule that future agents must validate against the closest local equivalent of the real CI/CD stages when feasible instead of stopping at narrow unit tests.
 - When the repository uses schema migrations, include a rule that future agents must validate migration graph or plan health after merge-sensitive changes so deploy-only failures are caught before handoff.
 - When the repository owns persistent relational schema but still relies on ORM `create_all`, bootstrap SQL, or similar startup-time schema creation, include a rule that future agents must move schema changes onto a real migration tool and stop treating application startup as the schema manager.
+- When the repository or user explicitly requires asynchronous database access, include concrete rules that future agents must use async drivers, async engines or sessions, and migration tooling compatible with that async connection policy; also forbid adding synchronous database clients or blocking DB helpers without explicit approval.
 - When the repository syncs data from external systems or derives downstream state from sync results, include rules that future agents must validate the full sync chain: FK rebinding, event emission, attachment or relation binding, derived records, and async follow-up work, not only the primary upsert.
 - When the repository relies on created-event hooks or asynchronous initialization, include rules that future agents should prefer idempotent, eligibility-based initialization over one-time creation timing when upstream data may arrive late.
 - When the repository has meaningful auth, session, admin, or operator surfaces, include rules that future agents must review reachable deprecated endpoints, token revocation behavior, and whether internal operational tools are exposed publicly.
@@ -133,6 +137,7 @@ When writing `AGENTS.md`:
 - state assumptions explicitly
 - keep the main file tool-agnostic even if bridge files exist
 - avoid copying large policy blocks into multiple files
+- before finalizing, ask: "Could a developer read this in under 2 minutes and know what to do?" If not, cut it down
 
 Default structure:
 
@@ -179,6 +184,7 @@ If the repository owns persistent relational schema but does not yet use a migra
 - introduce a real migration tool before continuing normal schema growth
 - stop relying on ORM startup hooks or init SQL as the long-term schema source of truth
 - make future schema changes land as reviewed migration revisions plus deploy-time migration execution
+- if async database access is required, require async database URLs, async engines or sessions, and migration configuration that does not introduce sync runtime database access
 
 If the repository syncs external data or fans sync results into downstream workflows, prefer rules such as:
 
@@ -206,6 +212,24 @@ Produce work in this order unless the user asks for something else:
 7. bridge-file recommendation only if relevant
 
 If asked to edit files directly and material policy decisions are still open, stop at a draft plus confirmation request instead of overwriting governance files.
+
+## Verification
+
+For each step, define what "done" looks like before starting:
+
+- Discovery done when: all material questions answered or marked `Unknown`/`Assumed`
+- Rule selection done when: every included rule traces to a detected repository fact
+- Drafting done when: `AGENTS.md` passes the "read before work starts" test (under 2 minutes)
+- Updating done when: no pre-existing rules removed unless factually wrong or user-approved
+
+## Success Signals
+
+The generated `AGENTS.md` is working if:
+
+- Future agents ask fewer unnecessary clarifying questions about project conventions
+- Generated `AGENTS.md` is referenced rather than re-derived on each session
+- Rules in `AGENTS.md` trace to detected repository facts, not generic best practices
+- Every changed line in `AGENTS.md` updates traces directly to the user's request or detected repository facts
 
 ## Reference Map
 
